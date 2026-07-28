@@ -5,19 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Coach ID - Gestão Profissional</title>
   
-  <!-- Configurações de App de Celular (PWA) -->
   <meta name="theme-color" content="#15803d">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22CoachID%20Pro%22,%22short_name%22:%22CoachID%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22#ffffff%22,%22theme_color%22:%22#15803d%22}">
 
-  <!-- Estilos e Fontes -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-100 font-sans pb-24 text-gray-800 select-none">
 
-  <!-- Topo Fixo -->
   <header class="bg-green-700 text-white p-4 shadow-md sticky top-0 z-20 flex justify-between items-center">
     <h1 class="font-black text-lg tracking-wide flex items-center gap-2">
       <span>⚽</span> COACH ID <span class="text-xs bg-green-900 px-2 py-0.5 rounded font-normal text-green-200">PRO</span>
@@ -27,14 +24,11 @@
     </button>
   </header>
 
-  <!-- Conteúdo das Abas -->
   <main class="max-w-md mx-auto p-4">
 
     <!-- ABA 1: DASHBOARD -->
-    <div id="tab-dashboard" class="tab-content space-y-4">
+    <div id="tab-dashboard" class="tab-content hidden space-y-4">
       <h2 class="text-xl font-bold text-gray-800">Painel Geral</h2>
-      
-      <!-- Cards Resumo -->
       <div class="grid grid-cols-3 gap-2">
         <div class="bg-white p-3 rounded-xl shadow-sm border text-center">
           <p class="text-xs text-gray-500 font-semibold uppercase">Atletas</p>
@@ -49,17 +43,6 @@
           <p id="dash-total-jogos" class="text-2xl font-black text-amber-600">0</p>
         </div>
       </div>
-
-      <!-- Próximos Atividades -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border space-y-3">
-        <h3 class="font-bold text-sm text-gray-700 border-b pb-2">📌 Próximo Treino</h3>
-        <div id="dash-proximo-treino" class="text-sm text-gray-500">Nenhum treino agendado.</div>
-      </div>
-
-      <div class="bg-white p-4 rounded-xl shadow-sm border space-y-3">
-        <h3 class="font-bold text-sm text-gray-700 border-b pb-2">🏆 Próximo Jogo</h3>
-        <div id="dash-proximo-jogo" class="text-sm text-gray-500">Nenhuma partida agendada.</div>
-      </div>
     </div>
 
     <!-- ABA 2: ELENCO -->
@@ -67,6 +50,12 @@
       <div class="bg-white p-4 rounded-xl shadow-sm border">
         <h2 class="text-base font-bold mb-3 text-gray-800">Cadastrar Atleta</h2>
         <form id="form-jogador" class="space-y-3">
+          <div class="flex items-center gap-3 border rounded-lg p-2 bg-gray-50">
+             <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden" id="preview-foto-container">
+                <span class="text-xl">📷</span>
+             </div>
+             <input type="file" id="jog-foto" accept="image/*" class="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" onchange="previewFoto(this)">
+          </div>
           <input type="text" id="jog-nome" required placeholder="Nome do Jogador" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 outline-none">
           <div class="flex gap-2">
             <select id="jog-posicao" class="w-2/3 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 outline-none">
@@ -78,36 +67,77 @@
             </select>
             <input type="number" id="jog-numero" placeholder="Nº Camisa" class="w-1/3 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 outline-none">
           </div>
-          <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition">
-            + Adicionar Atleta
+          <div class="flex gap-2">
+             <input type="email" id="jog-email" placeholder="Email" class="w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 outline-none">
+             <input type="tel" id="jog-telefone" placeholder="Telefone" class="w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 outline-none">
+          </div>
+          <button type="submit" id="btn-salvar-jogador" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition flex justify-center items-center gap-2">
+            <span>+ Adicionar Atleta</span>
           </button>
         </form>
       </div>
 
       <div class="bg-white p-4 rounded-xl shadow-sm border">
         <h3 class="font-bold text-sm text-gray-800 mb-3">Elenco Cadastrado</h3>
-        <div id="lista-jogadores" class="space-y-2 text-sm">Carregando...</div>
+        <div id="lista-jogadores" class="space-y-3 text-sm">Carregando...</div>
       </div>
     </div>
 
-    <!-- ABA 3: TREINOS -->
-    <div id="tab-treinos" class="tab-content hidden space-y-4">
-      <div class="bg-white p-4 rounded-xl shadow-sm border">
-        <h2 class="text-base font-bold mb-3 text-gray-800">Agendar Sessão de Treino</h2>
-        <form id="form-treino" class="space-y-3">
-          <input type="text" id="treino-foco" required placeholder="Foco do Treino (ex: Tático/Finalização)" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-          <div class="flex gap-2">
-            <input type="datetime-local" id="treino-data" required class="w-2/3 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-            <input type="number" id="treino-duracao" placeholder="Minutos" value="90" class="w-1/3 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-          </div>
-          <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-blue-700 transition">
-            + Salvar Treino
-          </button>
-        </form>
+    <!-- ABA 3: AGENDA (Calendário estilo Coach ID) -->
+    <div id="tab-agenda" class="tab-content space-y-4">
+      
+      <!-- Controles Superiores -->
+      <div class="flex justify-between items-center bg-transparent py-1">
+         <button class="p-2 text-gray-600 bg-white border rounded shadow-sm">☰</button>
+         <div class="flex gap-1 bg-white border rounded shadow-sm p-1">
+            <button onclick="mudarSemana(-1)" class="p-1.5 px-3 text-gray-600 hover:bg-gray-100 rounded">&lt;</button>
+            <button onclick="irParaHoje()" class="p-1.5 px-3 text-gray-600 hover:bg-gray-100 rounded">📅</button>
+            <button onclick="mudarSemana(1)" class="p-1.5 px-3 text-gray-600 hover:bg-gray-100 rounded">&gt;</button>
+         </div>
+         <div class="flex gap-2">
+            <button onclick="abrirModalNovoTreino()" class="p-2 px-4 border rounded shadow-sm text-white bg-blue-600 font-bold hover:bg-blue-700">+</button>
+         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-xl shadow-sm border">
-        <h3 class="font-bold text-sm text-gray-800 mb-3">Cronograma de Treinos</h3>
+      <!-- Cards de Resumo -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white border rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+           <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center mb-2 text-xl">📅</div>
+           <div class="text-2xl font-black text-gray-800" id="card-treinos-num">0</div>
+           <div class="text-[10px] font-bold text-gray-700 mt-1 uppercase">Treino esta semana</div>
+           <div class="text-[10px] text-gray-500" id="card-treinos-desc">Sem sessões</div>
+        </div>
+        <div class="bg-white border rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+           <div class="w-10 h-10 bg-orange-50 text-orange-500 rounded-lg flex items-center justify-center mb-2 text-xl">🏆</div>
+           <div class="text-2xl font-black text-gray-800">-</div>
+           <div class="text-[10px] font-bold text-gray-700 mt-1 uppercase">Próximo jogo</div>
+           <div class="text-[10px] text-gray-500" id="card-jogo-desc">Sem jogo agendado</div>
+        </div>
+      </div>
+
+      <!-- Calendário Semanal -->
+      <div class="bg-white border rounded-xl shadow-sm overflow-hidden flex flex-col">
+          <!-- Cabeçalho (Dias da semana) -->
+          <div class="grid grid-cols-7 border-b bg-white" id="cal-header"></div>
+          <!-- Corpo (Área de eventos) -->
+          <div class="grid grid-cols-7 h-48 bg-gray-50/30" id="cal-body"></div>
+          <!-- Rodapé (Botões +) -->
+          <div class="grid grid-cols-7 border-t bg-gray-50" id="cal-footer"></div>
+      </div>
+
+      <!-- Legenda -->
+      <div class="flex flex-wrap justify-center gap-3 text-[10px] text-gray-600 px-2 pb-2">
+         <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span>Treino</div>
+         <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span>Jogo</div>
+         <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-gray-500"></span>Compromisso</div>
+         <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400"></span>Folga</div>
+      </div>
+
+      <!-- Lista Rápida para Chamada -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border mt-4">
+        <h3 class="font-bold text-sm text-gray-800 mb-3 flex justify-between">
+           <span>📋 Lista de Sessões (Para Chamada)</span>
+        </h3>
         <div id="lista-treinos" class="space-y-2 text-sm">Carregando...</div>
       </div>
     </div>
@@ -128,173 +158,307 @@
           </button>
         </form>
       </div>
-
       <div class="bg-white p-4 rounded-xl shadow-sm border">
         <h3 class="font-bold text-sm text-gray-800 mb-3">Calendário de Jogos</h3>
         <div id="lista-jogos" class="space-y-2 text-sm">Carregando...</div>
       </div>
     </div>
 
+    <!-- MODAL: CADASTRAR NOVO TREINO -->
+    <div id="modal-novo-treino" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+       <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
+          <div class="bg-blue-600 p-4 flex justify-between items-center text-white">
+             <h3 class="font-bold">Novo Treino</h3>
+             <button onclick="fecharModalNovoTreino()" class="text-white font-black">✖</button>
+          </div>
+          <div class="p-4">
+            <form id="form-treino" class="space-y-3">
+              <input type="text" id="treino-foco" required placeholder="Foco (ex: Tático/Finalização)" class="w-full border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+              <input type="datetime-local" id="treino-data" required class="w-full border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+              <input type="number" id="treino-duracao" placeholder="Duração em Minutos" value="90" class="w-full border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+              <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-blue-700 mt-2">
+                Salvar Sessão
+              </button>
+            </form>
+          </div>
+       </div>
+    </div>
+
+    <!-- MODAL: CHAMADA -->
+    <div id="modal-chamada" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+       <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh]">
+          <div class="bg-blue-600 p-4 flex justify-between items-center text-white shrink-0">
+             <h3 class="font-bold">📋 Lista de Presença</h3>
+             <button onclick="fecharChamada()" class="text-white font-black">✖</button>
+          </div>
+          <div class="p-4 bg-gray-50 border-b shrink-0">
+             <p id="info-treino-chamada" class="text-xs text-gray-600 font-bold"></p>
+          </div>
+          <div id="lista-chamada" class="p-4 space-y-2 overflow-y-auto flex-1"></div>
+          <div class="p-4 border-t shrink-0">
+             <button onclick="salvarChamada()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg text-sm shadow-md hover:bg-blue-700">💾 Salvar Presenças</button>
+          </div>
+       </div>
+    </div>
+
   </main>
 
-  <!-- Menu Inferior de Navegação (Estilo App Nativo) -->
   <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 z-20 max-w-md mx-auto">
-    <button onclick="mudarAba('dashboard')" id="nav-dashboard" class="nav-btn flex flex-col items-center text-green-600">
-      <span class="text-lg">📊</span>
-      <span class="text-[10px] font-bold">Painel</span>
+    <button onclick="mudarAba('dashboard')" id="nav-dashboard" class="nav-btn flex flex-col items-center text-gray-400">
+      <span class="text-lg">📊</span><span class="text-[10px] font-bold">Painel</span>
     </button>
     <button onclick="mudarAba('elenco')" id="nav-elenco" class="nav-btn flex flex-col items-center text-gray-400">
-      <span class="text-lg">🏃</span>
-      <span class="text-[10px] font-bold">Elenco</span>
+      <span class="text-lg">🏃</span><span class="text-[10px] font-bold">Elenco</span>
     </button>
-    <button onclick="mudarAba('treinos')" id="nav-treinos" class="nav-btn flex flex-col items-center text-gray-400">
-      <span class="text-lg">📋</span>
-      <span class="text-[10px] font-bold">Treinos</span>
+    <button onclick="mudarAba('agenda')" id="nav-agenda" class="nav-btn flex flex-col items-center text-green-600">
+      <span class="text-lg">📅</span><span class="text-[10px] font-bold">Agenda</span>
     </button>
     <button onclick="mudarAba('jogos')" id="nav-jogos" class="nav-btn flex flex-col items-center text-gray-400">
-      <span class="text-lg">🏆</span>
-      <span class="text-[10px] font-bold">Jogos</span>
+      <span class="text-lg">🏆</span><span class="text-[10px] font-bold">Jogos</span>
     </button>
   </nav>
 
   <script>
-    // Configurações do Supabase
+    // --- COLOQUE SUAS CHAVES AQUI ---
     const SUPABASE_URL = 'https://sgchaiqsbjxmhghoxdcg.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnY2hhaXFzYmp4bWhnaG94ZGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyMTE4NTMsImV4cCI6MjEwMDc4Nzg1M30.d3V6X_TjLaUsnqaTW_5p3_1PsARzjl0-8SLGQaQTZkc';
+   ';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Sistema de Troca de Abas
+    let atletasCadastrados = [];
+    let todosTreinos = [];
+    let treinoAtualParaChamada = null;
+    let dataCalendario = new Date(); // Controla a semana atual na tela
+
     function mudarAba(aba) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-btn').forEach(el => {
-        el.classList.remove('text-green-600');
-        el.classList.add('text-gray-400');
+        el.classList.remove('text-green-600'); el.classList.add('text-gray-400');
       });
-
       document.getElementById(`tab-${aba}`).classList.remove('hidden');
       document.getElementById(`nav-${aba}`).classList.remove('text-gray-400');
       document.getElementById(`nav-${aba}`).classList.add('text-green-600');
     }
 
-    // Carregar todos os dados
     async function carregarTudo() {
-      carregarElenco();
-      carregarTreinos();
-      carregarJogos();
+      carregarElenco(); carregarTreinos(); carregarJogos();
     }
 
-    // --- ELENCO ---
-    document.getElementById('form-jogador').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const nome = document.getElementById('jog-nome').value;
-      const posicao = document.getElementById('jog-posicao').value;
-      const numero = document.getElementById('jog-numero').value;
-
-      await supabaseClient.from('jogadores').insert([{ nome, posicao, numero: numero ? parseInt(numero) : null }]);
-      document.getElementById('form-jogador').reset();
-      carregarElenco();
-    });
-
-    async function carregarElenco() {
-      const { data } = await supabaseClient.from('jogadores').select('*').order('id', { ascending: false });
-      const container = document.getElementById('lista-jogadores');
-      document.getElementById('dash-total-jogadores').innerText = data ? data.length : 0;
-
-      if (!data || data.length === 0) {
-        container.innerHTML = '<p class="text-gray-400 text-center py-2">Nenhum jogador cadastrado.</p>';
-        return;
-      }
-
-      container.innerHTML = data.map(j => `
-        <div class="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg border">
-          <div>
-            <p class="font-bold text-gray-800">${j.nome}</p>
-            <p class="text-xs text-gray-500">${j.posicao}</p>
-          </div>
-          <span class="bg-green-100 text-green-800 font-black text-xs px-2 py-1 rounded-full">#${j.numero || '-'}</span>
-        </div>
-      `).join('');
+    // --- CALENDÁRIO SEMANAL ---
+    function formatarDia(data) {
+       const dias = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+       return dias[data.getDay()];
     }
 
-    // --- TREINOS ---
+    function renderizarCalendario() {
+       const calHeader = document.getElementById('cal-header');
+       const calBody = document.getElementById('cal-body');
+       const calFooter = document.getElementById('cal-footer');
+       
+       calHeader.innerHTML = ''; calBody.innerHTML = ''; calFooter.innerHTML = '';
+
+       // Encontrar a segunda-feira da semana atual
+       const diaAtual = dataCalendario.getDay();
+       const difParaSegunda = dataCalendario.getDate() - diaAtual + (diaAtual === 0 ? -6 : 1);
+       const segundaFeira = new Date(dataCalendario.setDate(difParaSegunda));
+       
+       const hoje = new Date();
+       let treinosNaSemana = 0;
+
+       for(let i = 0; i < 7; i++) {
+          const diaLoop = new Date(segundaFeira);
+          diaLoop.setDate(segundaFeira.getDate() + i);
+          
+          const isHoje = diaLoop.getDate() === hoje.getDate() && diaLoop.getMonth() === hoje.getMonth();
+          const bgHeader = isHoje ? 'bg-blue-100 text-blue-800' : 'text-gray-800';
+          const txtColor = isHoje ? 'text-blue-600' : 'text-gray-500';
+
+          // Cabeçalho (Ex: SEG 27)
+          calHeader.innerHTML += `
+             <div class="py-2 flex flex-col items-center border-r last:border-r-0 ${bgHeader}">
+                 <span class="text-[10px] font-semibold ${txtColor}">${formatarDia(diaLoop)}</span>
+                 <span class="text-lg font-bold">${diaLoop.getDate()}</span>
+             </div>
+          `;
+
+          // Corpo (Bolinhas de evento)
+          let eventosDoDiaHTML = '';
+          const dataStrLoop = diaLoop.toISOString().split('T')[0];
+          
+          // Filtrar treinos deste dia
+          const treinosDia = todosTreinos.filter(t => t.data.startsWith(dataStrLoop));
+          if(treinosDia.length > 0) {
+             treinosNaSemana += treinosDia.length;
+             treinosDia.forEach(t => {
+                eventosDoDiaHTML += `<div class="w-full h-1.5 bg-blue-500 rounded-full mb-1 opacity-75"></div>`;
+             });
+          }
+
+          calBody.innerHTML += `
+             <div class="border-r last:border-r-0 p-1 flex flex-col items-center pt-2 ${isHoje ? 'bg-blue-50/30' : ''}">
+                ${eventosDoDiaHTML}
+             </div>
+          `;
+
+          // Rodapé (Botões + para agendar no dia)
+          calFooter.innerHTML += `
+             <button onclick="abrirModalDia('${dataStrLoop}')" class="py-2 border-r last:border-r-0 flex justify-center text-gray-400 hover:text-blue-600 hover:bg-gray-100 transition">
+                <span class="text-xl leading-none">+</span>
+             </button>
+          `;
+       }
+
+       // Atualiza Card de Resumo
+       document.getElementById('card-treinos-num').innerText = treinosNaSemana;
+       document.getElementById('card-treinos-desc').innerText = treinosNaSemana === 1 ? '1 sessão' : `${treinosNaSemana} sessões`;
+    }
+
+    function mudarSemana(direcao) {
+       dataCalendario.setDate(dataCalendario.getDate() + (direcao * 7));
+       renderizarCalendario();
+    }
+
+    function irParaHoje() {
+       dataCalendario = new Date();
+       renderizarCalendario();
+    }
+
+    // --- MODAL TREINOS ---
+    function abrirModalNovoTreino() {
+       document.getElementById('treino-data').value = '';
+       document.getElementById('modal-novo-treino').classList.remove('hidden');
+    }
+
+    function abrirModalDia(dataStr) {
+       document.getElementById('treino-data').value = dataStr + 'T15:00'; // Define a data e hora padrão (15:00)
+       document.getElementById('modal-novo-treino').classList.remove('hidden');
+    }
+
+    function fecharModalNovoTreino() {
+       document.getElementById('modal-novo-treino').classList.add('hidden');
+    }
+
     document.getElementById('form-treino').addEventListener('submit', async (e) => {
       e.preventDefault();
       const foco = document.getElementById('treino-foco').value;
       const data = document.getElementById('treino-data').value;
       const duracao = document.getElementById('treino-duracao').value;
 
-      await supabaseClient.from('treinos').insert([{ foco, data, duracao: parseInt(duracao) }]);
-      document.getElementById('form-treino').reset();
-      carregarTreinos();
+      const { error } = await supabaseClient.from('treinos').insert([{ foco, data, duracao: parseInt(duracao) }]);
+      if (error) alert("Erro ao salvar: " + error.message);
+      else {
+        document.getElementById('form-treino').reset();
+        fecharModalNovoTreino();
+        carregarTreinos();
+      }
     });
 
+    // --- CARREGAMENTO DE DADOS (Restante do App) ---
     async function carregarTreinos() {
-      const { data } = await supabaseClient.from('treinos').select('*').order('data', { ascending: true });
-      const container = document.getElementById('lista-treinos');
-      const dashContainer = document.getElementById('dash-proximo-treino');
+      const { data, error } = await supabaseClient.from('treinos').select('*').order('data', { ascending: false });
+      if (error) return;
+      todosTreinos = data; // Salva global para o calendário usar
+      
       document.getElementById('dash-total-treinos').innerText = data ? data.length : 0;
+      renderizarCalendario(); // Redesenha o calendário com os novos dados
 
+      // Popula a lista embaixo para chamada
+      const container = document.getElementById('lista-treinos');
       if (!data || data.length === 0) {
         container.innerHTML = '<p class="text-gray-400 text-center py-2">Nenhum treino agendado.</p>';
-        dashContainer.innerHTML = 'Nenhum treino agendado.';
         return;
       }
-
-      // Atualiza dashboard com o treino mais próximo
-      const prox = data[0];
-      const dataFormatada = new Date(prox.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-      dashContainer.innerHTML = `<div class="font-bold text-blue-700">${prox.foco}</div><div class="text-xs text-gray-600">📅 ${dataFormatada} (${prox.duracao} min)</div>`;
-
-      container.innerHTML = data.map(t => `
-        <div class="p-2.5 bg-blue-50 rounded-lg border border-blue-100">
-          <p class="font-bold text-blue-900">${t.foco}</p>
-          <p class="text-xs text-blue-700">📅 ${new Date(t.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} • ⏱️ ${t.duracao} min</p>
+      container.innerHTML = data.slice(0, 5).map(t => `
+        <div class="p-2.5 bg-white rounded-lg border flex justify-between items-center shadow-sm">
+          <div>
+             <p class="font-bold text-gray-800 text-sm">${t.foco}</p>
+             <p class="text-[10px] text-gray-500">📅 ${new Date(t.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</p>
+          </div>
+          <button onclick="abrirChamada(${t.id}, '${t.foco}')" class="bg-blue-50 text-blue-700 border border-blue-200 text-[10px] px-3 py-1.5 rounded font-bold hover:bg-blue-100">
+             ✅ Chamada
+          </button>
         </div>
       `).join('');
     }
 
-    // --- JOGOS ---
+    // Módulos de Elenco, Chamada e Jogos (Resumidos para funcionamento igual ao anterior)
+    function previewFoto(input) {
+      const c = document.getElementById('preview-foto-container');
+      if (input.files && input.files[0]) {
+        const r = new FileReader(); r.onload = e => c.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+        r.readAsDataURL(input.files[0]);
+      } else c.innerHTML = `<span class="text-xl">📷</span>`;
+    }
+
+    document.getElementById('form-jogador').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-salvar-jogador'); btn.innerHTML = '⏳ Salvando...'; btn.disabled = true;
+      const n = document.getElementById('jog-nome').value, p = document.getElementById('jog-posicao').value, num = document.getElementById('jog-numero').value, em = document.getElementById('jog-email').value, tel = document.getElementById('jog-telefone').value, f = document.getElementById('jog-foto');
+      let url = null;
+      if (f.files.length > 0) {
+        const ext = f.files[0].name.split('.').pop(), name = `${Date.now()}.${ext}`;
+        const { error: err } = await supabaseClient.storage.from('fotos_jogadores').upload(name, f.files[0]);
+        if (!err) url = supabaseClient.storage.from('fotos_jogadores').getPublicUrl(name).data.publicUrl;
+      }
+      await supabaseClient.from('jogadores').insert([{ nome:n, posicao:p, numero:num?parseInt(num):null, email:em, telefone:tel, foto_url:url }]);
+      document.getElementById('form-jogador').reset(); document.getElementById('preview-foto-container').innerHTML = `<span class="text-xl">📷</span>`;
+      btn.innerHTML = '+ Adicionar Atleta'; btn.disabled = false; carregarElenco();
+    });
+
+    async function carregarElenco() {
+      const { data } = await supabaseClient.from('jogadores').select('*').order('nome', { ascending: true });
+      atletasCadastrados = data || []; document.getElementById('dash-total-jogadores').innerText = atletasCadastrados.length;
+      document.getElementById('lista-jogadores').innerHTML = atletasCadastrados.map(j => `
+        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+          <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 shrink-0">${j.foto_url ? `<img src="${j.foto_url}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">👤</div>`}</div>
+          <div class="flex-1"><p class="font-bold text-gray-800 text-sm">${j.nome} <span class="bg-green-100 text-green-800 text-[9px] px-1.5 rounded-full ml-1">#${j.numero||'-'}</span></p><p class="text-[10px] text-gray-500">${j.posicao}</p></div>
+        </div>`).join('') || '<p class="text-gray-400 text-xs">Vazio.</p>';
+    }
+
+    async function abrirChamada(id, foco) {
+       treinoAtualParaChamada = id; document.getElementById('info-treino-chamada').innerText = `Treino: ${foco}`;
+       document.getElementById('modal-chamada').classList.remove('hidden');
+       const { data: pres } = await supabaseClient.from('presencas').select('jogador_id, presente').eq('treino_id', id);
+       const mapa = {}; if(pres) pres.forEach(p => mapa[p.jogador_id] = p.presente);
+       document.getElementById('lista-chamada').innerHTML = atletasCadastrados.map(j => `
+          <label class="flex justify-between items-center p-2 bg-white border rounded-lg cursor-pointer">
+             <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full overflow-hidden bg-gray-200">${j.foto_url ? `<img src="${j.foto_url}" class="w-full h-full object-cover">` : ''}</div>
+                <span class="font-bold text-gray-700 text-xs">${j.nome}</span>
+             </div>
+             <input type="checkbox" value="${j.id}" class="chamada-checkbox w-4 h-4 text-blue-600 rounded" ${mapa[j.id] ? 'checked' : ''}>
+          </label>`).join('');
+    }
+    function fecharChamada() { document.getElementById('modal-chamada').classList.add('hidden'); }
+    async function salvarChamada() {
+       const reg = Array.from(document.querySelectorAll('.chamada-checkbox')).map(cb => ({ treino_id: treinoAtualParaChamada, jogador_id: parseInt(cb.value), presente: cb.checked }));
+       await supabaseClient.from('presencas').delete().eq('treino_id', treinoAtualParaChamada);
+       await supabaseClient.from('presencas').insert(reg);
+       alert('✅ Salvo!'); fecharChamada();
+    }
+
     document.getElementById('form-jogo').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const adversario = document.getElementById('jogo-adversario').value;
-      const data = document.getElementById('jogo-data').value;
-      const local = document.getElementById('jogo-local').value;
-      const placar = document.getElementById('jogo-placar').value;
-
-      await supabaseClient.from('partidas').insert([{ adversario, data, local, placar }]);
-      document.getElementById('form-jogo').reset();
-      carregarJogos();
+      await supabaseClient.from('partidas').insert([{ 
+         adversario: document.getElementById('jogo-adversario').value, data: document.getElementById('jogo-data').value, 
+         local: document.getElementById('jogo-local').value, placar: document.getElementById('jogo-placar').value 
+      }]);
+      document.getElementById('form-jogo').reset(); carregarJogos();
     });
 
     async function carregarJogos() {
       const { data } = await supabaseClient.from('partidas').select('*').order('data', { ascending: true });
-      const container = document.getElementById('lista-jogos');
-      const dashContainer = document.getElementById('dash-proximo-jogo');
       document.getElementById('dash-total-jogos').innerText = data ? data.length : 0;
-
-      if (!data || data.length === 0) {
-        container.innerHTML = '<p class="text-gray-400 text-center py-2">Nenhuma partida marcada.</p>';
-        dashContainer.innerHTML = 'Nenhuma partida agendada.';
-        return;
-      }
-
-      // Atualiza dashboard
-      const prox = data[0];
-      const dataFormatada = new Date(prox.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-      dashContainer.innerHTML = `<div class="font-bold text-amber-700">vs ${prox.adversario}</div><div class="text-xs text-gray-600">📅 ${dataFormatada} • 📍 ${prox.local || 'A definir'}</div>`;
-
-      container.innerHTML = data.map(j => `
-        <div class="p-2.5 bg-amber-50 rounded-lg border border-amber-100 flex justify-between items-center">
-          <div>
-            <p class="font-bold text-amber-900">vs ${j.adversario}</p>
-            <p class="text-xs text-amber-700">📅 ${new Date(j.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} ${j.local ? '• 📍 ' + j.local : ''}</p>
-          </div>
-          ${j.placar ? `<span class="bg-amber-200 text-amber-900 font-black text-xs px-2 py-1 rounded">${j.placar}</span>` : ''}
-        </div>
-      `).join('');
+      const f = data?.filter(j => new Date(j.data) > new Date());
+      if(f?.length > 0) { document.getElementById('card-jogo-desc').innerText = `vs ${f[0].adversario}`; }
+      
+      document.getElementById('lista-jogos').innerHTML = data?.map(j => `
+        <div class="p-2 bg-amber-50 rounded border border-amber-100 flex justify-between items-center">
+          <div><p class="font-bold text-amber-900 text-sm">vs ${j.adversario}</p><p class="text-[10px] text-amber-700">📅 ${new Date(j.data).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short'})}</p></div>
+          ${j.placar ? `<span class="bg-amber-200 font-black text-xs px-2 py-1 rounded">${j.placar}</span>` : ''}
+        </div>`).join('') || '<p class="text-gray-400 text-xs">Vazio.</p>';
     }
 
-    // Inicialização
     carregarTudo();
   </script>
 </body>
