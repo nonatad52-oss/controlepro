@@ -3,135 +3,299 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Coach ID - Gestão de Futebol</title>
+  <title>Coach ID - Gestão Profissional</title>
   
-  <!-- Configurações para virar App de Celular (PWA) -->
-  <meta name="theme-color" content="#16a34a">
+  <!-- Configurações de App de Celular (PWA) -->
+  <meta name="theme-color" content="#15803d">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Coach%20ID%20App%22,%22short_name%22:%22CoachID%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22#ffffff%22,%22theme_color%22:%22#16a34a%22}">
+  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22CoachID%20Pro%22,%22short_name%22:%22CoachID%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22#ffffff%22,%22theme_color%22:%22#15803d%22}">
 
-  <!-- Estilos visuais prontos (Tailwind CSS) -->
+  <!-- Estilos e Fontes -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Biblioteca do Supabase via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-100 font-sans pb-10">
+<body class="bg-gray-100 font-sans pb-24 text-gray-800 select-none">
 
-  <!-- Cabeçalho do App -->
-  <header class="bg-green-600 text-white p-4 shadow-md text-center font-bold text-xl sticky top-0 z-10">
-    ⚽ Coach ID - Gestão
+  <!-- Topo Fixo -->
+  <header class="bg-green-700 text-white p-4 shadow-md sticky top-0 z-20 flex justify-between items-center">
+    <h1 class="font-black text-lg tracking-wide flex items-center gap-2">
+      <span>⚽</span> COACH ID <span class="text-xs bg-green-900 px-2 py-0.5 rounded font-normal text-green-200">PRO</span>
+    </h1>
+    <button onclick="carregarTudo()" class="text-xs bg-green-800 hover:bg-green-900 px-3 py-1.5 rounded-lg border border-green-600 transition">
+      Atualizar 🔄
+    </button>
   </header>
 
-  <main class="max-w-md mx-auto p-4 space-y-6">
+  <!-- Conteúdo das Abas -->
+  <main class="max-w-md mx-auto p-4">
 
-    <!-- Formulário de Cadastro de Jogador -->
-    <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-      <h2 class="text-lg font-bold mb-3 text-gray-800">Cadastrar Jogador</h2>
-      <form id="form-jogador" class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nome do Jogador</label>
-          <input type="text" id="nome" required placeholder="Ex: Neymar Jr" class="w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+    <!-- ABA 1: DASHBOARD -->
+    <div id="tab-dashboard" class="tab-content space-y-4">
+      <h2 class="text-xl font-bold text-gray-800">Painel Geral</h2>
+      
+      <!-- Cards Resumo -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-white p-3 rounded-xl shadow-sm border text-center">
+          <p class="text-xs text-gray-500 font-semibold uppercase">Atletas</p>
+          <p id="dash-total-jogadores" class="text-2xl font-black text-green-600">0</p>
         </div>
-        <div class="flex gap-2">
-          <div class="w-2/3">
-            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Posição</label>
-            <select id="posicao" class="w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+        <div class="bg-white p-3 rounded-xl shadow-sm border text-center">
+          <p class="text-xs text-gray-500 font-semibold uppercase">Treinos</p>
+          <p id="dash-total-treinos" class="text-2xl font-black text-blue-600">0</p>
+        </div>
+        <div class="bg-white p-3 rounded-xl shadow-sm border text-center">
+          <p class="text-xs text-gray-500 font-semibold uppercase">Partidas</p>
+          <p id="dash-total-jogos" class="text-2xl font-black text-amber-600">0</p>
+        </div>
+      </div>
+
+      <!-- Próximos Atividades -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border space-y-3">
+        <h3 class="font-bold text-sm text-gray-700 border-b pb-2">📌 Próximo Treino</h3>
+        <div id="dash-proximo-treino" class="text-sm text-gray-500">Nenhum treino agendado.</div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border space-y-3">
+        <h3 class="font-bold text-sm text-gray-700 border-b pb-2">🏆 Próximo Jogo</h3>
+        <div id="dash-proximo-jogo" class="text-sm text-gray-500">Nenhuma partida agendada.</div>
+      </div>
+    </div>
+
+    <!-- ABA 2: ELENCO -->
+    <div id="tab-elenco" class="tab-content hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border">
+        <h2 class="text-base font-bold mb-3 text-gray-800">Cadastrar Atleta</h2>
+        <form id="form-jogador" class="space-y-3">
+          <input type="text" id="jog-nome" required placeholder="Nome do Jogador" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 outline-none">
+          <div class="flex gap-2">
+            <select id="jog-posicao" class="w-2/3 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 outline-none">
               <option value="Goleiro">Goleiro</option>
               <option value="Zagueiro">Zagueiro</option>
               <option value="Lateral">Lateral</option>
               <option value="Meio-Campo">Meio-Campo</option>
               <option value="Atacante">Atacante</option>
             </select>
+            <input type="number" id="jog-numero" placeholder="Nº Camisa" class="w-1/3 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 outline-none">
           </div>
-          <div class="w-1/3">
-            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Número</label>
-            <input type="number" id="numero" placeholder="10" class="w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-          </div>
-        </div>
-        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg text-sm transition">
-          Salvar Jogador
-        </button>
-      </form>
-    </section>
-
-    <!-- Lista de Elenco -->
-    <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-      <h2 class="text-lg font-bold mb-3 text-gray-800 flex justify-between items-center">
-        <span>Elenco Atual</span>
-        <button onclick="carregarJogadores()" class="text-xs text-green-600 font-normal">Atualizar 🔄</button>
-      </h2>
-      <div id="lista-jogadores" class="space-y-2">
-        <p class="text-sm text-gray-500 text-center py-4">Carregando elenco...</p>
+          <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition">
+            + Adicionar Atleta
+          </button>
+        </form>
       </div>
-    </section>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border">
+        <h3 class="font-bold text-sm text-gray-800 mb-3">Elenco Cadastrado</h3>
+        <div id="lista-jogadores" class="space-y-2 text-sm">Carregando...</div>
+      </div>
+    </div>
+
+    <!-- ABA 3: TREINOS -->
+    <div id="tab-treinos" class="tab-content hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border">
+        <h2 class="text-base font-bold mb-3 text-gray-800">Agendar Sessão de Treino</h2>
+        <form id="form-treino" class="space-y-3">
+          <input type="text" id="treino-foco" required placeholder="Foco do Treino (ex: Tático/Finalização)" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          <div class="flex gap-2">
+            <input type="datetime-local" id="treino-data" required class="w-2/3 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="number" id="treino-duracao" placeholder="Minutos" value="90" class="w-1/3 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-blue-700 transition">
+            + Salvar Treino
+          </button>
+        </form>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border">
+        <h3 class="font-bold text-sm text-gray-800 mb-3">Cronograma de Treinos</h3>
+        <div id="lista-treinos" class="space-y-2 text-sm">Carregando...</div>
+      </div>
+    </div>
+
+    <!-- ABA 4: JOGOS -->
+    <div id="tab-jogos" class="tab-content hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border">
+        <h2 class="text-base font-bold mb-3 text-gray-800">Marcar Partida</h2>
+        <form id="form-jogo" class="space-y-3">
+          <input type="text" id="jogo-adversario" required placeholder="Adversário" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+          <input type="datetime-local" id="jogo-data" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+          <div class="flex gap-2">
+            <input type="text" id="jogo-local" placeholder="Local (Ex: Campo 1 / Fora)" class="w-2/3 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            <input type="text" id="jogo-placar" placeholder="Placar (ex: 2x1)" class="w-1/3 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+          </div>
+          <button type="submit" class="w-full bg-amber-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-amber-700 transition">
+            + Cadastrar Jogo
+          </button>
+        </form>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border">
+        <h3 class="font-bold text-sm text-gray-800 mb-3">Calendário de Jogos</h3>
+        <div id="lista-jogos" class="space-y-2 text-sm">Carregando...</div>
+      </div>
+    </div>
 
   </main>
 
+  <!-- Menu Inferior de Navegação (Estilo App Nativo) -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 z-20 max-w-md mx-auto">
+    <button onclick="mudarAba('dashboard')" id="nav-dashboard" class="nav-btn flex flex-col items-center text-green-600">
+      <span class="text-lg">📊</span>
+      <span class="text-[10px] font-bold">Painel</span>
+    </button>
+    <button onclick="mudarAba('elenco')" id="nav-elenco" class="nav-btn flex flex-col items-center text-gray-400">
+      <span class="text-lg">🏃</span>
+      <span class="text-[10px] font-bold">Elenco</span>
+    </button>
+    <button onclick="mudarAba('treinos')" id="nav-treinos" class="nav-btn flex flex-col items-center text-gray-400">
+      <span class="text-lg">📋</span>
+      <span class="text-[10px] font-bold">Treinos</span>
+    </button>
+    <button onclick="mudarAba('jogos')" id="nav-jogos" class="nav-btn flex flex-col items-center text-gray-400">
+      <span class="text-lg">🏆</span>
+      <span class="text-[10px] font-bold">Jogos</span>
+    </button>
+  </nav>
+
   <script>
-    // ----------------------------------------------------
-    // CONEXÃO COM O SUPABASE
-    // Cole abaixo a sua URL e a sua CHAVE ANON do Supabase:
-    // ----------------------------------------------------
+    // Configurações do Supabase
     const SUPABASE_URL = 'SUA_URL_DO_SUPABASE';
     const SUPABASE_KEY = 'SUA_CHAVE_ANON_DO_SUPABASE';
-    
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Salvar Jogador no Banco
+    // Sistema de Troca de Abas
+    function mudarAba(aba) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('text-green-600');
+        el.classList.add('text-gray-400');
+      });
+
+      document.getElementById(`tab-${aba}`).classList.remove('hidden');
+      document.getElementById(`nav-${aba}`).classList.remove('text-gray-400');
+      document.getElementById(`nav-${aba}`).classList.add('text-green-600');
+    }
+
+    // Carregar todos os dados
+    async function carregarTudo() {
+      carregarElenco();
+      carregarTreinos();
+      carregarJogos();
+    }
+
+    // --- ELENCO ---
     document.getElementById('form-jogador').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
-      const nome = document.getElementById('nome').value;
-      const posicao = document.getElementById('posicao').value;
-      const numero = document.getElementById('numero').value;
+      const nome = document.getElementById('jog-nome').value;
+      const posicao = document.getElementById('jog-posicao').value;
+      const numero = document.getElementById('jog-numero').value;
 
-      const { data, error } = await supabaseClient
-        .from('jogadores')
-        .insert([{ nome, posicao, numero: numero ? parseInt(numero) : null }]);
-
-      if (error) {
-        alert('Erro ao salvar jogador: ' + error.message);
-      } else {
-        document.getElementById('form-jogador').reset();
-        carregarJogadores();
-      }
+      await supabaseClient.from('jogadores').insert([{ nome, posicao, numero: numero ? parseInt(numero) : null }]);
+      document.getElementById('form-jogador').reset();
+      carregarElenco();
     });
 
-    // Listar Jogadores na Tela
-    async function carregarJogadores() {
-      const lista = document.getElementById('lista-jogadores');
-      
-      const { data: jogadores, error } = await supabaseClient
-        .from('jogadores')
-        .select('*')
-        .order('id', { ascending: false });
+    async function carregarElenco() {
+      const { data } = await supabaseClient.from('jogadores').select('*').order('id', { ascending: false });
+      const container = document.getElementById('lista-jogadores');
+      document.getElementById('dash-total-jogadores').innerText = data ? data.length : 0;
 
-      if (error) {
-        lista.innerHTML = `<p class="text-xs text-red-500">Erro: ${error.message}</p>`;
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-center py-2">Nenhum jogador cadastrado.</p>';
         return;
       }
 
-      if (jogadores.length === 0) {
-        lista.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Nenhum jogador cadastrado.</p>';
-        return;
-      }
-
-      lista.innerHTML = jogadores.map(j => `
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+      container.innerHTML = data.map(j => `
+        <div class="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg border">
           <div>
-            <p class="font-bold text-sm text-gray-800">${j.nome}</p>
+            <p class="font-bold text-gray-800">${j.nome}</p>
             <p class="text-xs text-gray-500">${j.posicao}</p>
           </div>
-          <span class="bg-green-100 text-green-800 font-extrabold text-xs px-2.5 py-1 rounded-full">
-            #${j.numero || '-'}
-          </span>
+          <span class="bg-green-100 text-green-800 font-black text-xs px-2 py-1 rounded-full">#${j.numero || '-'}</span>
         </div>
       `).join('');
     }
 
-    // Carrega a lista assim que abre a página
-    carregarJogadores();
+    // --- TREINOS ---
+    document.getElementById('form-treino').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const foco = document.getElementById('treino-foco').value;
+      const data = document.getElementById('treino-data').value;
+      const duracao = document.getElementById('treino-duracao').value;
+
+      await supabaseClient.from('treinos').insert([{ foco, data, duracao: parseInt(duracao) }]);
+      document.getElementById('form-treino').reset();
+      carregarTreinos();
+    });
+
+    async function carregarTreinos() {
+      const { data } = await supabaseClient.from('treinos').select('*').order('data', { ascending: true });
+      const container = document.getElementById('lista-treinos');
+      const dashContainer = document.getElementById('dash-proximo-treino');
+      document.getElementById('dash-total-treinos').innerText = data ? data.length : 0;
+
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-center py-2">Nenhum treino agendado.</p>';
+        dashContainer.innerHTML = 'Nenhum treino agendado.';
+        return;
+      }
+
+      // Atualiza dashboard com o treino mais próximo
+      const prox = data[0];
+      const dataFormatada = new Date(prox.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+      dashContainer.innerHTML = `<div class="font-bold text-blue-700">${prox.foco}</div><div class="text-xs text-gray-600">📅 ${dataFormatada} (${prox.duracao} min)</div>`;
+
+      container.innerHTML = data.map(t => `
+        <div class="p-2.5 bg-blue-50 rounded-lg border border-blue-100">
+          <p class="font-bold text-blue-900">${t.foco}</p>
+          <p class="text-xs text-blue-700">📅 ${new Date(t.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} • ⏱️ ${t.duracao} min</p>
+        </div>
+      `).join('');
+    }
+
+    // --- JOGOS ---
+    document.getElementById('form-jogo').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const adversario = document.getElementById('jogo-adversario').value;
+      const data = document.getElementById('jogo-data').value;
+      const local = document.getElementById('jogo-local').value;
+      const placar = document.getElementById('jogo-placar').value;
+
+      await supabaseClient.from('partidas').insert([{ adversario, data, local, placar }]);
+      document.getElementById('form-jogo').reset();
+      carregarJogos();
+    });
+
+    async function carregarJogos() {
+      const { data } = await supabaseClient.from('partidas').select('*').order('data', { ascending: true });
+      const container = document.getElementById('lista-jogos');
+      const dashContainer = document.getElementById('dash-proximo-jogo');
+      document.getElementById('dash-total-jogos').innerText = data ? data.length : 0;
+
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-center py-2">Nenhuma partida marcada.</p>';
+        dashContainer.innerHTML = 'Nenhuma partida agendada.';
+        return;
+      }
+
+      // Atualiza dashboard
+      const prox = data[0];
+      const dataFormatada = new Date(prox.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+      dashContainer.innerHTML = `<div class="font-bold text-amber-700">vs ${prox.adversario}</div><div class="text-xs text-gray-600">📅 ${dataFormatada} • 📍 ${prox.local || 'A definir'}</div>`;
+
+      container.innerHTML = data.map(j => `
+        <div class="p-2.5 bg-amber-50 rounded-lg border border-amber-100 flex justify-between items-center">
+          <div>
+            <p class="font-bold text-amber-900">vs ${j.adversario}</p>
+            <p class="text-xs text-amber-700">📅 ${new Date(j.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} ${j.local ? '• 📍 ' + j.local : ''}</p>
+          </div>
+          ${j.placar ? `<span class="bg-amber-200 text-amber-900 font-black text-xs px-2 py-1 rounded">${j.placar}</span>` : ''}
+        </div>
+      `).join('');
+    }
+
+    // Inicialização
+    carregarTudo();
   </script>
 </body>
 </html>
