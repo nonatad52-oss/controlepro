@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coach ID - Gestão de Futebol</title>
+  
+  <!-- Configurações para virar App de Celular (PWA) -->
+  <meta name="theme-color" content="#16a34a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Coach%20ID%20App%22,%22short_name%22:%22CoachID%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22#ffffff%22,%22theme_color%22:%22#16a34a%22}">
+
+  <!-- Estilos visuais prontos (Tailwind CSS) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Biblioteca do Supabase via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 font-sans pb-10">
+
+  <!-- Cabeçalho do App -->
+  <header class="bg-green-600 text-white p-4 shadow-md text-center font-bold text-xl sticky top-0 z-10">
+    ⚽ Coach ID - Gestão
+  </header>
+
+  <main class="max-w-md mx-auto p-4 space-y-6">
+
+    <!-- Formulário de Cadastro de Jogador -->
+    <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <h2 class="text-lg font-bold mb-3 text-gray-800">Cadastrar Jogador</h2>
+      <form id="form-jogador" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nome do Jogador</label>
+          <input type="text" id="nome" required placeholder="Ex: Neymar Jr" class="w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+        </div>
+        <div class="flex gap-2">
+          <div class="w-2/3">
+            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Posição</label>
+            <select id="posicao" class="w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+              <option value="Goleiro">Goleiro</option>
+              <option value="Zagueiro">Zagueiro</option>
+              <option value="Lateral">Lateral</option>
+              <option value="Meio-Campo">Meio-Campo</option>
+              <option value="Atacante">Atacante</option>
+            </select>
+          </div>
+          <div class="w-1/3">
+            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Número</label>
+            <input type="number" id="numero" placeholder="10" class="w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+        </div>
+        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg text-sm transition">
+          Salvar Jogador
+        </button>
+      </form>
+    </section>
+
+    <!-- Lista de Elenco -->
+    <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <h2 class="text-lg font-bold mb-3 text-gray-800 flex justify-between items-center">
+        <span>Elenco Atual</span>
+        <button onclick="carregarJogadores()" class="text-xs text-green-600 font-normal">Atualizar 🔄</button>
+      </h2>
+      <div id="lista-jogadores" class="space-y-2">
+        <p class="text-sm text-gray-500 text-center py-4">Carregando elenco...</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ----------------------------------------------------
+    // CONEXÃO COM O SUPABASE
+    // Cole abaixo a sua URL e a sua CHAVE ANON do Supabase:
+    // ----------------------------------------------------
+    const SUPABASE_URL = 'SUA_URL_DO_SUPABASE';
+    const SUPABASE_KEY = 'SUA_CHAVE_ANON_DO_SUPABASE';
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Salvar Jogador no Banco
+    document.getElementById('form-jogador').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const nome = document.getElementById('nome').value;
+      const posicao = document.getElementById('posicao').value;
+      const numero = document.getElementById('numero').value;
+
+      const { data, error } = await supabaseClient
+        .from('jogadores')
+        .insert([{ nome, posicao, numero: numero ? parseInt(numero) : null }]);
+
+      if (error) {
+        alert('Erro ao salvar jogador: ' + error.message);
+      } else {
+        document.getElementById('form-jogador').reset();
+        carregarJogadores();
+      }
+    });
+
+    // Listar Jogadores na Tela
+    async function carregarJogadores() {
+      const lista = document.getElementById('lista-jogadores');
+      
+      const { data: jogadores, error } = await supabaseClient
+        .from('jogadores')
+        .select('*')
+        .order('id', { ascending: false });
+
+      if (error) {
+        lista.innerHTML = `<p class="text-xs text-red-500">Erro: ${error.message}</p>`;
+        return;
+      }
+
+      if (jogadores.length === 0) {
+        lista.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Nenhum jogador cadastrado.</p>';
+        return;
+      }
+
+      lista.innerHTML = jogadores.map(j => `
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+          <div>
+            <p class="font-bold text-sm text-gray-800">${j.nome}</p>
+            <p class="text-xs text-gray-500">${j.posicao}</p>
+          </div>
+          <span class="bg-green-100 text-green-800 font-extrabold text-xs px-2.5 py-1 rounded-full">
+            #${j.numero || '-'}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    // Carrega a lista assim que abre a página
+    carregarJogadores();
+  </script>
+</body>
+</html>
